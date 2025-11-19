@@ -7,3 +7,4 @@ export const WrapperTypeProduct = styled.div`
   justify-content: flex-start;
   height: 44px;
 `;
+

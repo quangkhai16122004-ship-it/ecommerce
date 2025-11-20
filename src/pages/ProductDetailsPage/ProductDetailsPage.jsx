@@ -5,7 +5,7 @@ const ProductDetailsPage = () => {
   return (
     <div style={{padding:'0 120px', background:'#efefef', height:'10000px'}}>
     <h5>Trang chủ</h5>
-    <ProductDetailComponent />
+        <ProductDetailComponent />
     </div>
   )
 }

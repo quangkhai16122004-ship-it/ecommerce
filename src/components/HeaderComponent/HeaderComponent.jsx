@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col } from 'antd';
+import { Badge, Col } from 'antd';
 import { WarpperHeader, WarpperTextHeader, WarpperHeaderAccount, WarpperTextHeaderSmall } from './style';
 // import Search from 'antd/es/transfer/search';
 import { UserOutlined, CaretDownOutlined, ShoppingCartOutlined } from '@ant-design/icons';
@@ -33,7 +33,9 @@ const HeaderComponent = () => {
         </div>
         </WarpperHeaderAccount>
         <div>
+          <Badge count={5} size='small'>
                 <ShoppingCartOutlined style={{fontSize:'30px', color:'#fff'}} />
+          </Badge>
                 <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>
         </div>
       </Col>

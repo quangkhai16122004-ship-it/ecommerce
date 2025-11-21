@@ -6,12 +6,12 @@ import { UserOutlined, CaretDownOutlined, ShoppingCartOutlined } from '@ant-desi
 import ButtonInputSearch from '../ButtonInputSearch/ButtonInputSearch';
 const HeaderComponent = () => {
   return (
-    <div>
+    <div style={{width:'100%', backgroundColor:'rgb(26,148,255)', display:'flex', justifyContent:'center'}}>
     <WarpperHeader>
-      <Col span={6}>
+      <Col span={5}>
         <WarpperTextHeader>SIÊU THỊ QUANG KHẢI</WarpperTextHeader>
       </Col>
-      <Col span={12}>
+      <Col span={13}>
        <ButtonInputSearch
        size="large" 
        textbutton="Tìm kiếm"
@@ -19,7 +19,7 @@ const HeaderComponent = () => {
     //    onSearch={onSearch}
         />
       </Col>
-      <Col span={6} style={{display:'flex', gap:'20px', alignItems:'center'}}>
+      <Col span={6} style={{display:'flex', gap:'54px', alignItems:'center'}}>
       <WarpperHeaderAccount>
         <UserOutlined style={{fontSize:'30px'}}/>
         <div>

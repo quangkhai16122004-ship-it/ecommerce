@@ -4,7 +4,12 @@ import { WarpperHeader, WarpperTextHeader, WarpperHeaderAccount, WarpperTextHead
 // import Search from 'antd/es/transfer/search';
 import { UserOutlined, CaretDownOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import ButtonInputSearch from '../ButtonInputSearch/ButtonInputSearch';
+import { useNavigate } from 'react-router-dom';
 const HeaderComponent = () => {
+  const navigate = useNavigate();
+  const handleNavigatLogin = () => {
+    navigate('/sign-in')
+  }
   return (
     <div style={{width:'100%', backgroundColor:'rgb(26,148,255)', display:'flex', justifyContent:'center'}}>
     <WarpperHeader>
@@ -23,7 +28,7 @@ const HeaderComponent = () => {
       <WarpperHeaderAccount>
         <UserOutlined style={{fontSize:'30px'}}/>
         <div>
-            <div>
+            <div onClick={handleNavigatLogin} style={{cursor:'pointer'}}>
                 <WarpperTextHeaderSmall>Đăng ký/Đăng nhập</WarpperTextHeaderSmall>
                 <div>
                 <WarpperTextHeaderSmall>Tài khoản</WarpperTextHeaderSmall>

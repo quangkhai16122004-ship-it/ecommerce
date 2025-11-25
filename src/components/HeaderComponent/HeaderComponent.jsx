@@ -1,52 +1,88 @@
 import React from 'react';
-import { Badge, Col } from 'antd';
-import { WarpperHeader, WarpperTextHeader, WarpperHeaderAccount, WarpperTextHeaderSmall } from './style';
-// import Search from 'antd/es/transfer/search';
+import { Badge, Col, Popover } from 'antd';
+import { 
+  WarpperHeader, 
+  WarpperTextHeader, 
+  WarpperHeaderAccount, 
+  WarpperTextHeaderSmall, 
+  WrapperContentPopup 
+} from './style';
 import { UserOutlined, CaretDownOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import ButtonInputSearch from '../ButtonInputSearch/ButtonInputSearch';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import * as UserService from '../../services/UserService';
+import { resetUser } from '../../redux/slides/userSlide';
+
 const HeaderComponent = () => {
+  const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await UserService.logoutUser();
+    dispatch(resetUser());
+  };
+
+  const content = (
+    <div>
+      <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
+      <WrapperContentPopup onClick={() => navigate('/profile-user')}>
+        Thông tin người dùng
+      </WrapperContentPopup>
+    </div>
+  );
+
   const handleNavigatLogin = () => {
-    navigate('/sign-in')
-  }
+    navigate('/sign-in');
+  };
+
   return (
-    <div style={{width:'100%', backgroundColor:'rgb(26,148,255)', display:'flex', justifyContent:'center'}}>
-    <WarpperHeader>
-      <Col span={5}>
-        <WarpperTextHeader>SIÊU THỊ QUANG KHẢI</WarpperTextHeader>
-      </Col>
-      <Col span={13}>
-       <ButtonInputSearch
-       size="large" 
-       textbutton="Tìm kiếm"
-        placeholder="nhập từ khóa cần tìm kiếm" 
-    //    onSearch={onSearch}
-        />
-      </Col>
-      <Col span={6} style={{display:'flex', gap:'54px', alignItems:'center'}}>
-      <WarpperHeaderAccount>
-        <UserOutlined style={{fontSize:'30px'}}/>
-        <div>
-            <div onClick={handleNavigatLogin} style={{cursor:'pointer'}}>
+    <div style={{ width: '100%', backgroundColor: 'rgb(26,148,255)', display: 'flex', justifyContent: 'center' }}>
+      <WarpperHeader>
+        <Col span={5}>
+          <WarpperTextHeader>SIÊU THỊ QUANG KHẢI</WarpperTextHeader>
+        </Col>
+
+        <Col span={13}>
+          <ButtonInputSearch
+            size="large"
+            textbutton="Tìm kiếm"
+            placeholder="nhập từ khóa cần tìm kiếm"
+          />
+        </Col>
+
+        <Col span={6} style={{ display: 'flex', gap: '54px', alignItems: 'center' }}>
+          <WarpperHeaderAccount>
+            <UserOutlined style={{ fontSize: '30px' }} />
+
+            {user?.access_token ? (
+              <Popover content={content} trigger="click">
+                <div style={{ cursor: 'pointer' }}>
+                  {user?.name || user?.email}
+                </div>
+              </Popover>
+            ) : (
+              <div onClick={handleNavigatLogin} style={{ cursor: 'pointer' }}>
                 <WarpperTextHeaderSmall>Đăng ký/Đăng nhập</WarpperTextHeaderSmall>
                 <div>
-                <WarpperTextHeaderSmall>Tài khoản</WarpperTextHeaderSmall>
-                <CaretDownOutlined />
+                  <WarpperTextHeaderSmall>Tài khoản</WarpperTextHeaderSmall>
+                  <CaretDownOutlined />
                 </div>
-            </div>
-        </div>
-        </WarpperHeaderAccount>
-        <div>
-          <Badge count={5} size='small'>
-                <ShoppingCartOutlined style={{fontSize:'30px', color:'#fff'}} />
-          </Badge>
-                <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>
-        </div>
-      </Col>
-    </WarpperHeader>
-    </div>
-  )
-}
+              </div>
+            )}
+          </WarpperHeaderAccount>
 
-export default HeaderComponent
+          <div>
+            <Badge count={5} size="small">
+              <ShoppingCartOutlined style={{ fontSize: '30px', color: '#fff' }} />
+            </Badge>
+            <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>
+          </div>
+        </Col>
+      </WarpperHeader>
+    </div>
+  );
+};
+
+export default HeaderComponent;

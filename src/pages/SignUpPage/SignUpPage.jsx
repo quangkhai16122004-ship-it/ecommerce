@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { WrapperContainerLeft, WrapperContainerRight, WrapperTextLight } from './style'
 import InputForm from '../../components/InputForm/InputForm'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
@@ -6,6 +6,9 @@ import imageLogo from '../../assets/images/logo-signin.png'
 import { Image } from 'antd'
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import * as UserService from '../../services/UserService'
+import { useMutationHooks } from '../../hooks/useMutationHook'
+import * as messages from '../../components/Message/Message'
 
 const SignUpPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false)
@@ -14,6 +17,26 @@ const SignUpPage = () => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+    const mutation = useMutationHooks(
+      data => UserService.signupUser(data)
+    )
+    const {data, isError, isSuccess}= mutation;
+      useEffect(() => {
+      console.log("📦 mutation full:", mutation)
+    
+      if (mutation.isSuccess) {
+        messages.success()
+        handleNaivigateSignIn()
+        console.log("✅ mutation success:", mutation.data)
+      }
+    
+      if (mutation.isError) {
+        messages.error()
+        console.error("❌ mutation error:", mutation.error)
+      }
+    }, [mutation.isSuccess, mutation.isError])
+
+    
   const handleOnChangeEmail = (value) => {
     setEmail(value)
   }
@@ -32,6 +55,11 @@ const SignUpPage = () => {
   }
 
   const handleSignUp = () => {
+     mutation.mutate({
+      email, 
+      password,
+      confirmPassword
+    })
     console.log('signup', email, password, confirmPassword)
   }
   return (
@@ -41,7 +69,7 @@ const SignUpPage = () => {
         <h1>Xin chào</h1>
         <p>Đăng nhập, tao tk</p>
         
-        {/* ✅ SỬA Ở ĐÂY: handleOnchange → handleOnChange */}
+        
         <InputForm 
           style={{marginBottom:'10px'}} 
           placeholder="abc@gmail.com" 
@@ -91,7 +119,7 @@ const SignUpPage = () => {
             onChange={handleOnChangeConfirmPassword}
           />
         </div>
-        
+        {data?.status === 'ERR' && <span style={{color:'red'}}>{data?.message}</span>} 
         <ButtonComponent
         disabled={!email.length || !password.length || !confirmPassword.length}
         onClick={handleSignUp}

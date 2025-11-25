@@ -4,20 +4,49 @@ import {routes} from './routes'
 import DefaultComponent from './components/DefaultComponent/DefaultComponent.jsx'
 import axios from 'axios'
 import { useQuery } from '@tanstack/react-query'
+import { isJsonString } from './untils.js'
+import { jwtDecode } from 'jwt-decode'
+import * as UserService from './services/UserService.js'
+import { useDispatch } from 'react-redux'
+import { updateUser } from './redux/slides/userSlide.js'
 function App() {
 
-  // useEffect(() => {
-  //   fetchApi()
-  // },[])
+  const dispatch= useDispatch();
+   useEffect(() => {
+    const {storageData, decoded} = handleDecode()
+        if(decoded?.id){
+          handleGetDetailsUser(decoded?.id, storageData)
+        }
+   },[])
 
-  // console.log('process.env.REACT_APP_API_KEY', process.env.REACT_APP_API_URL)
+   const handleDecode =() =>{
+    let storageData = localStorage.getItem('access_token')
+    let decoded = {}
+    if(storageData && isJsonString(storageData)){
+      storageData= JSON.parse(storageData)
+       decoded = jwtDecode(storageData)
+    }
+    return {decoded, storageData}
+   }
 
-  // const fetchApi = async () => {
-  //   const res =await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all`)
-  //   return res.data
-  // }
-  // const query= useQuery({queryKey:['todos'], queryFn: fetchApi})
-  // console.log('query', query)
+UserService.axiosJwt.interceptors.request.use(async (config) => {
+    const currentTime = new Date();
+    const { decoded } = handleDecode();
+
+    if (decoded?.exp < currentTime.getTime() / 1000) {
+        const data = await UserService.refreshToken();
+
+        config.headers['token'] = `Bearer ${data?.access_token}`;
+    }
+    return config;
+});
+
+
+   const handleGetDetailsUser = async  (id, token) => {
+  const res = await UserService.getDetailsUser(id, token)
+  dispatch(updateUser({...res?.data, access_token: token}))
+}
+
   return (
     <div>
       <Router>

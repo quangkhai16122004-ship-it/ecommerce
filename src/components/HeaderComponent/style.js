@@ -26,3 +26,9 @@ export const WarpperTextHeaderSmall = styled.span`
     color: white;
     white-space: nowrap;
 `
+export const WrapperContentPopup = styled.p`
+    cursor: pointer;
+    &:hover {
+        color: rgb(26,148,225);
+    }
+`

@@ -9,16 +9,55 @@ import {  useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useMutation } from '@tanstack/react-query'
 import * as UserService from '../../services/UserService'
+import { useMutationHooks } from '../../hooks/useMutationHook'
+import { useEffect } from 'react'
+import * as messages from '../../components/Message/Message'
+import { jwtDecode } from 'jwt-decode'
+import { useDispatch } from 'react-redux'
+import { updateUser } from '../../redux/slides/userSlide'
+
+
 const SignInPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const dispatch = useDispatch();
+
   const navigate = useNavigate();
 
-  const mutation = useMutation({
-    mutationFn: data => UserService.loginUser(data)
-  })
+  const mutation = useMutationHooks(
+    data => UserService.loginUser(data)
+  )
+
+  const {data, isSuccess}= mutation;
+
+  useEffect(() => {
+  console.log("📦 mutation full:", mutation)
+
+  if (mutation.isSuccess) {
+    navigate('/')
+    console.log('data', data)
+    localStorage.setItem('access_token', JSON.stringify (data?.access_token))
+    if(data?.access_token){
+      const decoded = jwtDecode(data?.access_token)
+      console.log('decoded', decoded)
+      if(decoded?.id){
+        handleGetDetailsUser(decoded?.id, data?.access_token)
+      }
+    }
+    console.log("✅ mutation success:", mutation.data)
+  }
+
+  if (mutation.isError) {
+    console.error("❌ mutation error:", mutation.error)
+  }
+}, [mutation.isSuccess, mutation.isError])
+
+const handleGetDetailsUser = async  (id, token) => {
+  const res = await UserService.getDetailsUser(id, token)
+  dispatch(updateUser({...res?.data, access_token: token}))
+}
 
   const handleNavigateSignUp = () => {
     navigate('/sign-up')
@@ -33,7 +72,10 @@ const SignInPage = () => {
   }
 
   const handleSignIn = () => {
-    mutation.mutate({email, password})
+    mutation.mutate({
+      email, 
+      password
+    })
     console.log('signin', email, password)
   }
 
@@ -71,6 +113,7 @@ const SignInPage = () => {
             onChange={handleOnChangePassword}
           />
         </div>
+        {data?.status === 'ERR' && <span style={{color:'red'}}>{data?.message}</span>} 
         <ButtonComponent
             disabled={!email.length || !password.length }
             onClick={handleSignIn}

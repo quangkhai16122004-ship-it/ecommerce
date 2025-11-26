@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge, Col, Popover } from 'antd';
 import { 
   WarpperHeader, 
@@ -18,6 +18,11 @@ const HeaderComponent = () => {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [userAvatar, setUserAvatar] = useState('');
+
+  useEffect(() => {
+    setUserAvatar(user?.avatar);
+  },[user?.avatar])
 
   const handleLogout = async () => {
     await UserService.logoutUser();
@@ -54,8 +59,14 @@ const HeaderComponent = () => {
 
         <Col span={6} style={{ display: 'flex', gap: '54px', alignItems: 'center' }}>
           <WarpperHeaderAccount>
+            {userAvatar ? (
+              <img
+                src={userAvatar} alt="avatar"
+                style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
+              />
+            ) : (
             <UserOutlined style={{ fontSize: '30px' }} />
-
+            )}
             {user?.access_token ? (
               <Popover content={content} trigger="click">
                 <div style={{ cursor: 'pointer' }}>

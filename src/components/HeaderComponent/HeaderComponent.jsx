@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as UserService from '../../services/UserService';
 import { resetUser } from '../../redux/slides/userSlide';
 
-const HeaderComponent = () => {
+const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -31,10 +31,15 @@ const HeaderComponent = () => {
 
   const content = (
     <div>
-      <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
       <WrapperContentPopup onClick={() => navigate('/profile-user')}>
         Thông tin người dùng
       </WrapperContentPopup>
+      {user?.isAdmin && (
+      <WrapperContentPopup onClick={() => navigate('/system/admin')}>
+        Quản lý hệ thống
+      </WrapperContentPopup>
+      )}
+      <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
     </div>
   );
 
@@ -44,18 +49,20 @@ const HeaderComponent = () => {
 
   return (
     <div style={{ width: '100%', backgroundColor: 'rgb(26,148,255)', display: 'flex', justifyContent: 'center' }}>
-      <WarpperHeader>
+      <WarpperHeader style={{justifyContent : isHiddenCart && isHiddenSearch ? 'space-between' : 'unset'}}>
         <Col span={5}>
           <WarpperTextHeader>SIÊU THỊ QUANG KHẢI</WarpperTextHeader>
         </Col>
-
-        <Col span={13}>
-          <ButtonInputSearch
-            size="large"
-            textbutton="Tìm kiếm"
-            placeholder="nhập từ khóa cần tìm kiếm"
-          />
-        </Col>
+        {!isHiddenSearch &&(
+          <Col span={13}>
+            <ButtonInputSearch
+              size="large"
+              textbutton="Tìm kiếm"
+              placeholder="nhập từ khóa cần tìm kiếm"
+            />
+          </Col>
+        )}
+        
 
         <Col span={6} style={{ display: 'flex', gap: '54px', alignItems: 'center' }}>
           <WarpperHeaderAccount>
@@ -83,13 +90,14 @@ const HeaderComponent = () => {
               </div>
             )}
           </WarpperHeaderAccount>
-
-          <div>
-            <Badge count={5} size="small">
-              <ShoppingCartOutlined style={{ fontSize: '30px', color: '#fff' }} />
-            </Badge>
-            <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>
-          </div>
+          {!isHiddenCart &&(
+            <div>
+              <Badge count={5} size="small">
+                <ShoppingCartOutlined style={{ fontSize: '30px', color: '#fff' }} />
+              </Badge>
+              <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>
+            </div>
+          )}
         </Col>
       </WarpperHeader>
     </div>

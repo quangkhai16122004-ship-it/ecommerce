@@ -23,3 +23,16 @@ export const crateProduct = async (data) => {
     return res.data;
 
 }
+
+export const getDetailsProduct = async (id) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/product/details/${id}`,
+      {},
+      {
+        
+        withCredentials: true   // QUAN TRỌNG
+      }
+    );
+    return res.data;
+
+}
+

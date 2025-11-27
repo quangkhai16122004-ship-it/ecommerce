@@ -4,13 +4,13 @@ import React from 'react'
 const InputComponent = ({size, placeholder,style, ...rests}) => {
   return (
     <div>
-        <Input 
-            size={size} 
-            placeholder={placeholder} 
-            variant='borderless'
-            style={style}
-            {...rests}
+        <Input
+          size={size}
+          placeholder={placeholder}
+          style={{ border: "1px solid #d9d9d9", borderRadius: "4px" }}
+          {...rests}
         />
+
     </div>
   )
 }

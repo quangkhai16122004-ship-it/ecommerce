@@ -43,6 +43,17 @@ export const getDetailsUser = async (id, access_token) => {
     return res.data;
 }
 
+export const getAllUser = async ( access_token) => {
+    const res = await axiosJwt.get(
+        `${process.env.REACT_APP_API_URL}/user/getAll`,{
+            headers: {
+                token: `Bearer ${access_token}`,
+            }
+        }
+    );
+    return res.data;
+}
+
 export const refreshToken = async () => {
   try {
     const res = await axios.post(
@@ -78,6 +89,32 @@ export const updateUser = async (id, data, access_token) => {
       withCredentials: true,
       headers: {
         token: `Bearer ${access_token}`,   // nhớ sửa Beare → Bearer
+      }
+    }
+  );
+  return res.data;
+};
+
+export const deleteUser = async (id, access_token) => {
+  const res = await axiosJwt.delete(
+    `${process.env.REACT_APP_API_URL}/user/delete-user/${id}`,    {
+      withCredentials: true,
+      headers: {
+        token: `Bearer ${access_token}`,   // nhớ sửa Beare → Bearer
+      }
+    }
+  );
+  return res.data;
+};
+
+export const deleteManyUser = async (ids, access_token) => {
+  const res = await axiosJwt.delete(
+    `${process.env.REACT_APP_API_URL}/user/delete-many`,
+    {
+      data: { ids },  // body khi DELETE phải nằm trong "data"
+      withCredentials: true,
+      headers: {
+        token: `Bearer ${access_token}`,
       }
     }
   );

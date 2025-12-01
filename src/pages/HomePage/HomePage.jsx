@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import TypeProduct from '../../components/TypeProduct/TypeProduct'
 import { WrapperButtonMore, WrapperProduct, WrapperTypeProduct } from './style'
 import SliderComponent from '../../components/SliderComponent/SliderComponent'
@@ -8,13 +8,30 @@ import slider3 from '../../assets/images/slider3.webp'
 import CardComponent from '../../components/CardComponent/CardComponent'
 import { useQuery } from '@tanstack/react-query'
 import * as ProductService from '../../services/ProductService'
+import { useSelector } from 'react-redux'
 
 const HomePage = () => {
+  const searchProduct = useSelector((state)=>state?.product?.search)
+  const refSearch =useRef()
+  const [stateProduct, setStateProduct] = useState([])
   const arr =['TV', 'Tu lanh', 'Laptop']
-  const fetchProductAll =async()=>{
-   const res= await ProductService.getAllProduct()
-   return res
-  }
+  const fetchProductAll =async(search)=>{
+    //if(search.length>0){
+      const res= await ProductService.getAllProduct(search)
+      if(search?.length>0 || refSearch.current){
+        setStateProduct(res?.data)
+      }else{
+        return res
+      }
+    }
+    
+
+  useEffect(()=>{
+    if(refSearch.current){
+      fetchProductAll(searchProduct)
+    }
+    refSearch.current=true
+  },[searchProduct])
   const { data: products } = useQuery({
   queryKey: ['products'],
   queryFn: fetchProductAll,
@@ -22,8 +39,11 @@ const HomePage = () => {
   retryDelay: 1000
 });
 
-
-  console.log('data', products)
+useEffect(()=>{
+  if(products?.data?.length>0){
+    setStateProduct(products?.data)
+  }
+},[products])
 
 
   return (
@@ -41,7 +61,7 @@ const HomePage = () => {
       <div id="container" style={{ height:'1000px', width:'1270px', margin:'0 auto'}}> 
     <SliderComponent arrImages={[slider1,slider2,slider3]}/>
     <WrapperProduct>
-      {products?.data?.map((product)=>{
+      {stateProduct?.map((product)=>{
         return (
           <CardComponent 
             key={product._id} 

@@ -1,14 +1,13 @@
 import axios from "axios";
 import { axiosJwt } from "./UserService";
 
-export const getAllProduct = async () => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all`,
-      {},
-      {
-        
-        withCredentials: true   // QUAN TRỌNG
-      }
-    );
+export const getAllProduct = async (search) => {
+    let res ={}
+    if(search.length >0){
+       res = await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all?filter=name&filter=${search}`)
+    }else{
+       res = await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all`)
+    }
     return res.data;
 
 }
@@ -50,4 +49,35 @@ export const updateProduct = async (id, access_token, data) => {
     return res.data;
 
 }
+
+export const deleteProduct = async (id, access_token) => {
+    const res = await axiosJwt.delete(`${process.env.REACT_APP_API_URL}/product/delete/${id}`,
+      {},
+      {
+        withCredentials: true,
+        headers: {
+        token: `Bearer ${access_token}`,   // nhớ sửa Beare → Bearer
+      }
+      }
+    );
+    return res.data;
+
+}
+
+export const deleteManyProduct = async (ids, access_token) => {
+  const res = await axiosJwt.delete(
+    `${process.env.REACT_APP_API_URL}/product/delete-many`,
+    {
+      data: { ids },
+      withCredentials: true,
+      headers: {
+        token: `Bearer ${access_token}`,
+      }
+    }
+  );
+  return res.data;
+};
+
+
+
 

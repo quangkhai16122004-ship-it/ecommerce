@@ -2,6 +2,7 @@ import { SearchOutlined } from '@ant-design/icons'
 import { Input } from 'antd'
 import React from 'react'
 import ButtonComponent from '../ButtonComponent/ButtonComponent'
+import InputComponent from '../InputComponent/InputComponent'
 
 const ButtonInputSearch = (props) => {
   const {
@@ -21,6 +22,7 @@ const ButtonInputSearch = (props) => {
         placeholder={placeholder}
         variant='borderless'
         style={{ backgroundColor: backgroundColorInput }}
+        {...props}
       />
 
       <ButtonComponent

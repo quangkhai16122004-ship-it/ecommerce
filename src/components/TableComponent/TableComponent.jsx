@@ -1,31 +1,63 @@
 import React, { useState } from 'react';
-import { Divider, Radio, Table } from 'antd';
+import { Table } from 'antd';
 
 const TableComponent = (props) => {
-    const { selectionType = 'checkbox', data=[], columns=[] }=props
+  const { 
+    selectionType = 'checkbox', 
+    data = [], 
+    columns = [], 
+    handleDeleteManyProducts,
+    handleDeleteManyUsers,
+  } = props;
 
-
+  const [rowSelectedKeys, setRowSelectedKeys] = useState([]);
 
   const rowSelection = {
+    selectedRowKeys: rowSelectedKeys,
     onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`Selected row keys: ${selectedRowKeys}`, 'Selected rows: ', selectedRows);
-    },
-    getCheckboxProps: (record)=>({
-        disabled: record.name === 'Disabled User',
-        name: record.name
-    })
+      setRowSelectedKeys(selectedRowKeys);
+    }
   };
 
+  const handleDeleteAll = () => {
+    if (rowSelectedKeys.length === 0) return;
+
+      const handler = handleDeleteManyProducts || handleDeleteManyUsers;
+        if (handler) {
+          handler(rowSelectedKeys); 
+          setRowSelectedKeys([]); 
+    } else {
+      console.error("Error: Neither handleDeleteManyProducts nor handleDeleteManyUsers prop was provided.");
+    }
+   };
+
   return (
+    <div>
+      {rowSelectedKeys.length > 0 && (
+        <div
+          style={{
+            background: '#1d1ddd',
+            color: '#fff',
+            fontWeight: 'bold',
+            padding: '10px',
+            cursor: 'pointer'
+          }}
+          onClick={handleDeleteAll}
+        >
+          Xóa tất cả
+        </div>
+      )}
+
       <Table
+        rowKey="_id"   // 🔥 THÊM DÒNG NÀY
         rowSelection={{
           type: selectionType,
           ...rowSelection,
         }}
         columns={columns}
         dataSource={data}
-        {...props}
       />
+    </div>
   );
 };
 

@@ -21,6 +21,7 @@ const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
   const navigate = useNavigate();
   const [userAvatar, setUserAvatar] = useState('');
   const [search, setSearch]=useState('')
+  const order = useSelector((state)=> state.order)
 
   useEffect(() => {
     setUserAvatar(user?.avatar);
@@ -99,8 +100,8 @@ const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
             )}
           </WarpperHeaderAccount>
           {!isHiddenCart &&(
-            <div>
-              <Badge count={5} size="small">
+            <div onClick={()=> navigate('/order')} style={{cursor:'pointer'}}>
+              <Badge count={order?.orderItems?.length} size="small">
                 <ShoppingCartOutlined style={{ fontSize: '30px', color: '#fff' }} />
               </Badge>
               <WarpperTextHeaderSmall>Giỏ hàng</WarpperTextHeaderSmall>

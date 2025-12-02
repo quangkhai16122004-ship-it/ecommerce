@@ -1,16 +1,29 @@
 import axios from "axios";
 import { axiosJwt } from "./UserService";
 
-export const getAllProduct = async (search) => {
-    let res ={}
-    if(search.length >0){
-       res = await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all?filter=name&filter=${search}`)
-    }else{
-       res = await axios.get(`${process.env.REACT_APP_API_URL}/product/get-all`)
-    }
-    return res.data;
+export const getAllProduct = async (search, limit) => {
+    let url = `${process.env.REACT_APP_API_URL}/product/get-all?limit=${limit}`;
 
-}
+    if (search && search.trim() !== '') {
+        url += `&filter=name&search=${search}`;
+    }
+    console.log("API Request URL:", url); 
+    
+    const res = await axios.get(url);
+    return res.data;
+};
+
+export const getProductType = async (type, page, limit) => {
+    let url = `${process.env.REACT_APP_API_URL}/product/get-all?`;
+
+    if (type) {
+        url += `&filter=type&search=${type}&limit=${limit}&page=${page}`;
+    }
+    console.log("API Request URL:", url); 
+    
+    const res = await axios.get(url);
+    return res.data;
+};
 
 export const crateProduct = async (data) => {
     const res = await axios.post(`${process.env.REACT_APP_API_URL}/product/create`,data,
@@ -77,6 +90,17 @@ export const deleteManyProduct = async (ids, access_token) => {
   );
   return res.data;
 };
+
+export const getAllTypeProduct = async () => {
+  const res = await axios.get(
+    `${process.env.REACT_APP_API_URL}/product/get-all-type`,
+    {
+      withCredentials: true,
+    }
+  );
+  return res.data;
+};
+
 
 
 

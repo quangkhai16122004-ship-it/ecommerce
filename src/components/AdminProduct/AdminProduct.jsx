@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Form, Modal, Space } from "antd";
+import { Button, Form, Modal, Select, Space } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -10,7 +10,7 @@ import {
 import TableComponent from "../TableComponent/TableComponent";
 import InputComponent from "../InputComponent/InputComponent";
 import { WrapperUploadFile } from "../../pages/Profile/style";
-import { getBase64 } from "../../untils";
+import { getBase64, renderOptions } from "../../untils";
 import * as ProductService from "../../services/ProductService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import * as message from "../../components/Message/Message";
@@ -26,17 +26,20 @@ const AdminProduct = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
+  const [typeSelect, setTypeSelect]=useState('')
   const searchInput = useRef(null);
 
-  const [stateProduct, setStateProduct] = useState({
-    name: "",
-    price: "",
-    description: "",
-    rating: "",
-    image: "",
-    type: "",
-    countInStock: "",
-  });
+  const initialState = {
+  name: "",
+  type: "",
+  countInStock: "",
+  price: "",
+  rating: "",
+  description: "",
+  image: ""
+};
+
+const [stateProduct, setStateProduct] = useState(initialState);
 
   const [stateProductDetails, setStateProductDetails] = useState({
     name: "",
@@ -52,28 +55,31 @@ const AdminProduct = () => {
   const queryClient = useQueryClient();
   const user = useSelector((state) => state.user);
 
-  // ========================= GET ALL PRODUCTS =========================
   const getAllProduct = async () => {
     const res = await ProductService.getAllProduct();
     return res;
   };
+
+    const fetchAllTypeProduct = async ()=>{
+      const res = await ProductService.getAllTypeProduct()
+      return res
+    }
+
+  const typeProduct = useQuery({queryKey:['type-product'], queryFn: fetchAllTypeProduct})
 
   const { data: products } = useQuery({
     queryKey: ["products"],
     queryFn: getAllProduct,
   });
 
-  // ========================= CREATE PRODUCT =========================
   const mutationCreate = useMutationHooks((data) =>
     ProductService.crateProduct(data)
   );
 
-  // ========================= UPDATE PRODUCT =========================
   const mutationUpdate = useMutationHooks((data) =>
     ProductService.updateProduct(data.id, data.token, data.body)
   );
 
-  // ========================= DELETE PRODUCT =========================
   const mutationDelete = useMutationHooks((data) =>
     ProductService.deleteProduct(data.id, data.token)
   );
@@ -83,10 +89,9 @@ const AdminProduct = () => {
   );
 
   
-  // Lấy ra kết quả của mutationDelete để kiểm tra loading và error (nếu cần)
   const { isSuccess: isSuccessDelete, isPending: isPendingDelete, isError: isErrorDelete } = mutationDelete;
 
-  // Cập nhật giao diện sau khi xóa thành công
+
   useEffect(() => {
     if (isSuccessDelete) {
       message.success("Xóa sản phẩm thành công!");
@@ -98,7 +103,6 @@ const AdminProduct = () => {
   }, [isSuccessDelete, isErrorDelete, queryClient]);
 
 
-  // ========================= GET DETAIL PRODUCT =========================
   const fetchGetDetailsProduct = async (id) => {
     const res = await ProductService.getDetailsProduct(id);
     if (res?.data) {
@@ -115,7 +119,8 @@ const AdminProduct = () => {
     setIsModalOpenDelete(false);
   };
 
-  // ========================= XỬ LÝ XÓA SẢN PHẨM =========================
+
+
   const handleDeleteProduct = () => {
     if (rowSelected) {
       mutationDelete.mutate({
@@ -123,7 +128,6 @@ const AdminProduct = () => {
         token: user?.access_token,
       });
     } else {
-        // Có thể thêm một thông báo lỗi nếu không có sản phẩm nào được chọn
         message.error("Vui lòng chọn sản phẩm để xóa.");
         setIsModalOpenDelete(false);
     }
@@ -144,7 +148,13 @@ const AdminProduct = () => {
     });
   };
 
-  // ========================= TABLE =========================
+    const handleCancel = () => {
+    setIsModalOpen(false);
+    setStateProduct(initialState);
+    form.resetFields();
+  };
+
+
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -240,22 +250,13 @@ const AdminProduct = () => {
       key: item._id,
     })) || [];
 
-  // ========================= CREATE SUBMIT =========================
   const onFinishCreate = () => {
     mutationCreate.mutate(stateProduct, {
       onSuccess: () => {
         message.success("Tạo sản phẩm thành công!");
         setIsModalOpen(false);
         queryClient.invalidateQueries(["products"]);
-        setStateProduct({
-          name: "",
-          price: "",
-          description: "",
-          rating: "",
-          image: "",
-          type: "",
-          countInStock: "",
-        });
+        setStateProduct(initialState);
         form.resetFields();
       },
       onError: (error) => {
@@ -265,7 +266,6 @@ const AdminProduct = () => {
     });
   };
 
-  // ========================= UPDATE SUBMIT =========================
   const onFinishUpdate = () => {
     mutationUpdate.mutate(
       {
@@ -287,7 +287,6 @@ const AdminProduct = () => {
     );
   };
 
-  // ========================= INPUT CHANGE =========================
   const handleChange = (e) => {
     setStateProduct({
       ...stateProduct,
@@ -302,7 +301,6 @@ const AdminProduct = () => {
     });
   };
 
-  // ========================= IMAGE UPLOAD =========================
   const handleUpload = async (info) => {
     const file = info.file;
     file.preview = await getBase64(file.originFileObj);
@@ -317,6 +315,17 @@ const AdminProduct = () => {
     setStateProductDetails({ ...stateProductDetails, image: file.preview });
     form.setFieldsValue({ image: file.preview });
   };
+
+  const handleChangeSelect=(value)=>{
+    if(value !== 'add_type'){
+      setStateProduct({
+        ...stateProduct,
+        type:value
+      })
+    }else{
+      setTypeSelect(value)
+    }
+  }
 
   return (
     <div>
@@ -345,12 +354,11 @@ const AdminProduct = () => {
         />
       </div>
 
-      {/* CREATE MODAL */}
       <ModalComponent
         forceRender
         title="Tạo sản phẩm"
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={handleCancel}
         footer={null}
       >
         <Form labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} onFinish={onFinishCreate}>
@@ -359,7 +367,13 @@ const AdminProduct = () => {
           </Form.Item>
 
           <Form.Item label="Type" name="type" rules={[{ required: true }]}>
-            <InputComponent name="type" value={stateProduct.type} onChange={handleChange} />
+            <Select name="type"
+              value={typeSelect}
+              onChange={handleChangeSelect}
+              options={renderOptions(typeProduct?.data?.data)}/>
+              {typeSelect === 'add_type' && (
+              <InputComponent name="type" value={stateProduct.type} onChange={handleChange} />
+              )}
           </Form.Item>
 
           <Form.Item label="Count InStock" name="countInStock">
@@ -387,7 +401,6 @@ const AdminProduct = () => {
           </Form.Item>
 
           <Form.Item label="Image" name="image">
-            {/* Giả sử WrapperUploadFile là một component Ant Design Upload đã tùy chỉnh */}
             <WrapperUploadFile onChange={handleUpload} maxCount={1}>
               <Button icon={<UploadOutlined />}>Select file</Button>
               {stateProduct.image && (
@@ -414,13 +427,11 @@ const AdminProduct = () => {
         </Form>
       </ModalComponent>
 
-      {/* DELETE MODAL */}
       <ModalComponent
         title="Xóa sản phẩm"
         open={isModalOpenDelete}
         onCancel={handleCancelDelete}
         onOk={handleDeleteProduct}
-        // Thêm loading cho nút OK khi đang xóa
         confirmLoading={isPendingDelete} 
       >
         <div>
@@ -428,7 +439,6 @@ const AdminProduct = () => {
         </div>
       </ModalComponent>
 
-      {/* UPDATE DRAWER */}
       <DrawerComponent
         title="Chi tiết sản phẩm"
         isOpen={isOpenDrawer}

@@ -12,45 +12,52 @@ import { useSelector } from 'react-redux'
 
 const HomePage = () => {
   const searchProduct = useSelector((state)=>state?.product?.search)
-  const refSearch =useRef()
   const [stateProduct, setStateProduct] = useState([])
-  const arr =['TV', 'Tu lanh', 'Laptop']
-  const fetchProductAll =async(search)=>{
-    //if(search.length>0){
-      const res= await ProductService.getAllProduct(search)
-      if(search?.length>0 || refSearch.current){
-        setStateProduct(res?.data)
-      }else{
-        return res
-      }
+  const [limit,setLimit] = useState(6)
+  const [typeProduct, setTypeProduct]= useState([])
+
+  const fetchProductAll = async ({ queryKey }) => {
+  const [, limit, search] = queryKey
+  const res = await ProductService.getAllProduct(search, limit)
+  return res
+}
+
+  const fetchAllTypeProduct = async ()=>{
+    const res = await ProductService.getAllTypeProduct()
+    if(res.status ==='OK'){
+      setTypeProduct(res?.data)
     }
-    
+  }
 
   useEffect(()=>{
-    if(refSearch.current){
-      fetchProductAll(searchProduct)
-    }
-    refSearch.current=true
-  },[searchProduct])
-  const { data: products } = useQuery({
-  queryKey: ['products'],
+    fetchAllTypeProduct()
+  },[])
+    
+
+  const { data: products , isPreviousData } = useQuery({
+  queryKey: ['products', limit, searchProduct],
   queryFn: fetchProductAll,
   retry: 3,
-  retryDelay: 1000
-});
+  retryDelay: 1000,
+  keepPreviousData: true
+})
 
-useEffect(()=>{
-  if(products?.data?.length>0){
-    setStateProduct(products?.data)
+
+useEffect(() => {
+   if (products?.data?.length > 0) {
+    setStateProduct(products.data)
+   } else if (products?.data && searchProduct !== '') {
+    setStateProduct([]);
   }
-},[products])
+}, [products, searchProduct])
+
 
 
   return (
     <>
     <div style={{width:'1270px', margin:'0 auto'}}>
       <WrapperTypeProduct>
-      {arr.map((item)=>{
+      {typeProduct.map((item)=>{
       return(
         <TypeProduct name={item} key={item}/>
       )}
@@ -72,8 +79,10 @@ useEffect(()=>{
             price={product.price}
             rating={product.rating}
             type={product.type}
-            disount={product.discount}
-            selled={product.selled}/>
+            discount={product.discount}
+            selled={product.selled}
+            id={product._id}
+            />
             
         )
       })}
@@ -84,7 +93,9 @@ useEffect(()=>{
         color: 'rgb(11,116,229)',
         width: '240px', height: '38px', borderRadius: '4px',
       }}
+      disabled={products?.total === products?.data?.length || products?.totalPage===1}
       styleTextButton={{fontWeight: 500}}
+      onClick={()=> setLimit((prev)=> prev+6)}
       />
       </div>
     </div>

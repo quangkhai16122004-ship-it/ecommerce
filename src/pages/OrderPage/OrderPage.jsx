@@ -1,28 +1,34 @@
-import React from 'react';
-import { Row, Col, Checkbox, Input, Button } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Row, Col, Checkbox, Input, Button, Form } from 'antd';
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'; 
 import { WrapperHeader, WrapperLeft, WrapperRight, WrapperProduct, WrapperInfo, WrapperTotal, WrapperCountOrder } from './style'; 
 import { useSelector, useDispatch } from 'react-redux'; 
 import { updateOrderQuantity, removeOrderProduct } from '../../redux/slides/orderSlide'; 
+import ModalComponent from '../../components/ModalComponent/ModalComponent';
+import InputComponent from '../../components/InputComponent/InputComponent';
+import * as UserService from "../../services/UserService";
+import { useMutationHooks } from '../../hooks/useMutationHook';
+import { updateUser } from '../../redux/slides/userSlide';
 
 
-// ******************************************************
-// 1. COMPONENT CON: ProductComponent
-// ******************************************************
-
-const ProductComponent = ({ item, handleChangeCount, handleRemove }) => {
+// PRODUCT COMPONENT
+const ProductComponent = ({ item, handleChangeCount, handleRemove, handleCheckboxChange, isChecked }) => {
     
     const quantity = item.amount || 0; 
     const price = item.price || 0;
 
-    const subTotalPrice = (price * quantity).toLocaleString('vi-VN');
+    const subTotalPrice = (price * quantity);
+
 
     return (
         <WrapperProduct>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '390px' }}>
-                <Checkbox checked={true} /> 
+                <Checkbox 
+                    checked={isChecked} 
+                    onChange={() => handleCheckboxChange(item.product)} 
+                /> 
                 <img 
-                    src={item.image || 'placeholder_image_url'} 
+                    src={item.image || 'https://placehold.co/77x79/eeeeee/333333?text=Product'} 
                     style={{ width: '77px', height: '79px', objectFit: 'cover' }} 
                     alt={item.name}
                 />
@@ -61,7 +67,7 @@ const ProductComponent = ({ item, handleChangeCount, handleRemove }) => {
                 </WrapperCountOrder>
 
                 <span style={{ color: 'red', fontWeight: 500, width: '100px', textAlign: 'center' }}>
-                    {subTotalPrice} 
+                    {subTotalPrice.toLocaleString('vi-VN')} 
                 </span>
                 
                 <DeleteOutlined 
@@ -74,22 +80,65 @@ const ProductComponent = ({ item, handleChangeCount, handleRemove }) => {
 }
 
 
-// ******************************************************
-// 2. COMPONENT CHA: OrderPage
-// ******************************************************
-
+// ORDER PAGE COMPONENT
 const OrderPage = () => {
-    const order = useSelector((state) => state.order)
+    const order = useSelector((state) => state.order);
     const dispatch = useDispatch();
+    const user = useSelector((state)=> state.user)
+    const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false)
+    const [stateUserDetail, setStateUserDetail] = useState({
+        name: "",
+        phone: "",
+        address: "",
+        city:""
+      });
+    const[form] = Form.useForm()
     
     const productsToRender = order?.orderItems || [];
     const isCartEmpty = productsToRender.length === 0;
 
-    const totalOrder = order?.itemsPrice || 0;
-    const finalTotal = order?.totalPrice || 0;
-    const shippingPrice = order?.shippingPrice || 0;
-    const taxPrice = order?.taxPrice || 0;
+    const [listChecked, setListChecked] = useState([]);
+    
+    useEffect(() => {
+        const initialCheckedIds = productsToRender.map(item => item.product);
+        setListChecked(initialCheckedIds);
+    }, [productsToRender.length]);
 
+    useEffect(()=>{
+        form.setFieldsValue(stateUserDetail)
+    }, [form, stateUserDetail])
+
+    useEffect(()=>{
+        if(isOpenModalUpdateInfo){
+            setStateUserDetail({
+                ...stateUserDetail,
+                city: user?.city,
+                name: user.name,
+                address: user?.address,
+                phone: user?.phone
+            })
+        }
+    }, [isOpenModalUpdateInfo])
+
+
+    // HANDLERS
+    const handleCheckboxChange = (idProduct) => {
+        const isChecked = listChecked.includes(idProduct);
+        if (isChecked) {
+            setListChecked(listChecked.filter(id => id !== idProduct));
+        } else {
+            setListChecked([...listChecked, idProduct]);
+        }
+    }
+
+    const handleOnchangeAllCheckbox = (e) => {
+        if (e.target.checked) {
+            const allCheckedIds = productsToRender.map(item => item.product);
+            setListChecked(allCheckedIds);
+        } else {
+            setListChecked([]);
+        }
+    }
 
     const handleQuantityChange = (id, type) => {
         const currentItem = productsToRender.find(item => item.product === id);
@@ -111,8 +160,61 @@ const OrderPage = () => {
 
     const handleRemoveProduct = (idProduct) => {
         dispatch(removeOrderProduct({ idProduct }));
+        setListChecked(listChecked.filter(id => id !== idProduct));
     }
 
+
+    // TÍNH TOÁN TỔNG TIỀN
+    const itemsChecked = useMemo(() => {
+        return productsToRender.filter(item => listChecked.includes(item.product));
+    }, [productsToRender, listChecked]);
+
+    const totalOrder = useMemo(() => {
+        return itemsChecked.reduce((sum, item) => sum + (item.price * item.amount), 0);
+    }, [itemsChecked]);
+    
+    const shippingPrice = totalOrder > 1000000 ? 0 : 30000;
+    const taxPrice = totalOrder * 0.1;
+    const finalTotal = totalOrder + shippingPrice + taxPrice;
+
+    // RENDER
+    const isCheckedAll = listChecked.length === productsToRender.length && productsToRender.length > 0;
+
+    const handleAddCard=( user)=>{
+        if(!user?.phone || !user?.address || !user?.name || !user?.city) {
+            setIsOpenModalUpdateInfo(true)
+        }
+    }
+    const mutationUpdate = useMutationHooks((data) =>
+        UserService.updateUser(data.id, data.body, data.token)
+      );
+
+    const {data} = mutationUpdate
+
+    const handelCancelUpdate =()=>{
+        setStateUserDetail({
+            name:'',
+        })
+        form.resetFields()
+        setIsOpenModalUpdateInfo(false)
+    }
+
+    const handleUpdateInfoUser=()=>{
+        const {name, address, city, phone} = stateUserDetail
+        if(name && address && city && phone){
+            mutationUpdate.mutate({id: user?.id, token:user?.access_token,...stateUserDetail},{
+                onSuccess:()=>{
+                    dispatch(updateUser({name,address,city, phone}))
+                    setIsOpenModalUpdateInfo(false)
+                }
+            })
+        }
+    }
+
+    const handleChangeDetail = (e) => {
+        setStateUserDetail({ ...stateUserDetail, [e.target.name]: e.target.value });
+    };
+    
     return (
         <div style={{ background: '#efefef', padding: '20px 0', minHeight: '100vh' }}>
             <div style={{ width: '1270px', margin: '0 auto' }}>
@@ -129,8 +231,16 @@ const OrderPage = () => {
                         
                         <WrapperLeft>
                             <WrapperHeader>
-                                <span style={{ width: '50px' }}><Checkbox checked={true} /></span>
-                                <span style={{ flex: 1, textAlign: 'left', paddingLeft: '10px' }}>Tất cả ({productsToRender.length} sản phẩm)</span> 
+                                <span style={{ width: '50px' }}>
+                                    <Checkbox 
+                                        onChange={handleOnchangeAllCheckbox} 
+                                        checked={isCheckedAll} 
+                                        disabled={productsToRender.length === 0}
+                                    />
+                                </span>
+                                <span style={{ flex: 1, textAlign: 'left', paddingLeft: '10px' }}>
+                                    Tất cả ({productsToRender.length} sản phẩm)
+                                </span> 
                                 
                                 <span style={{ width: '100px', textAlign: 'center' }}>Đơn giá</span>
                                 <span style={{ width: '100px', textAlign: 'center' }}>Số lượng</span>
@@ -146,6 +256,8 @@ const OrderPage = () => {
                                         item={item}
                                         handleChangeCount={handleQuantityChange}
                                         handleRemove={handleRemoveProduct} 
+                                        handleCheckboxChange={handleCheckboxChange}
+                                        isChecked={listChecked.includes(item.product)}
                                     />
                                 ))}
                             </WrapperInfo>
@@ -154,7 +266,7 @@ const OrderPage = () => {
                         <WrapperRight>
                             <WrapperInfo>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <span>Tạm tính</span>
+                                    <span>Tạm tính ({itemsChecked.length} sản phẩm)</span>
                                     <span style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                         {totalOrder.toLocaleString('vi-VN')}
                                     </span>
@@ -186,7 +298,9 @@ const OrderPage = () => {
                             </WrapperTotal>
 
                             <Button 
+                                onClick={()=> handleAddCard()}
                                 style={{ background: '#fe3834', height: '48px', width: '100%', border: 'none', borderRadius: '4px', color: '#fff', fontWeight: 500, fontSize: '18px' }}
+                                disabled={listChecked.length === 0}
                             >
                                 Mua hàng
                             </Button>
@@ -194,6 +308,33 @@ const OrderPage = () => {
                     </Row>
                 )}
             </div>
+            <ModalComponent title="Cập nhật thông tin giao hàng" open={isOpenModalUpdateInfo} onCancel={handelCancelUpdate} onOk={handleUpdateInfoUser}>
+                <Form layout="vertical" form={form} /*onFinish={handleUpdate}*/>
+                    <Form.Item label="Tên" name="name" required>
+                        <InputComponent name="name" value={stateUserDetail.name} onChange={handleChangeDetail} />
+                    </Form.Item>
+
+                    <Form.Item label="Thành phố" name="city" required>
+                        <InputComponent name="city" value={stateUserDetail.city} onChange={handleChangeDetail} />
+                    </Form.Item>
+
+                    <Form.Item label="Phone" name="phone">
+                        <InputComponent
+                        name="phone"
+                        value={stateUserDetail.phone}
+                        onChange={handleChangeDetail}
+                        />
+                    </Form.Item>
+
+                    <Form.Item label="Address" name="address">
+                        <InputComponent
+                        name="address"
+                        value={stateUserDetail.address}
+                        onChange={handleChangeDetail}
+                        />
+                    </Form.Item>
+            </Form>
+            </ModalComponent>
         </div>
     );
 }

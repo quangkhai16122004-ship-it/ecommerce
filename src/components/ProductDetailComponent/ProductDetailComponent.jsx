@@ -92,7 +92,7 @@ const ProductDetailComponent = ({idProduct}) => {
                 <WrapperStyleTextSell> | Đã bán 1000+</WrapperStyleTextSell>
             </div>
             <WrapperPriceProduct>
-                <WrapperPriceTextProduct>{productDetails?.price}</WrapperPriceTextProduct>
+                <WrapperPriceTextProduct>{Number(productDetails?.price).toLocaleString('vi-VN')}</WrapperPriceTextProduct>
             </WrapperPriceProduct>
             <WrapperAddressProduct>
                 <span>Giao đến</span>

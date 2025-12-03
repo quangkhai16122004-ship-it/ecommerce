@@ -56,7 +56,7 @@ const [stateProduct, setStateProduct] = useState(initialState);
   const user = useSelector((state) => state.user);
 
   const getAllProduct = async () => {
-    const res = await ProductService.getAllProduct();
+    const res = await ProductService.getAllProduct('',100);
     return res;
   };
 

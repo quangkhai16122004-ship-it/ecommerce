@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Badge, Col, Popover } from 'antd';
 import { 
-  WarpperHeader, 
-  WarpperTextHeader, 
-  WarpperHeaderAccount, 
-  WarpperTextHeaderSmall, 
-  WrapperContentPopup 
+ WarpperHeader, 
+ WarpperTextHeader, 
+ WarpperHeaderAccount, 
+ WarpperTextHeaderSmall, 
+ WrapperContentPopup 
 } from './style';
 import { UserOutlined, CaretDownOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import ButtonInputSearch from '../ButtonInputSearch/ButtonInputSearch';
@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as UserService from '../../services/UserService';
 import { resetUser } from '../../redux/slides/userSlide';
 import { searchProduct } from '../../redux/slides/productSlide';
+import { removeAllOrderProduct } from '../../redux/slides/orderSlide';
 
 const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
   const user = useSelector((state) => state.user);
@@ -30,6 +31,7 @@ const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
   const handleLogout = async () => {
     await UserService.logoutUser();
     dispatch(resetUser());
+    dispatch(removeAllOrderProduct());
   };
 
   const content = (
@@ -49,6 +51,9 @@ const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
   const handleNavigatLogin = () => {
     navigate('/sign-in');
   };
+  const handleNavigatHome=()=>{
+    navigate('/')
+  }
 
   const onSearch = (e) =>{
     setSearch(e.target.value)
@@ -59,7 +64,9 @@ const HeaderComponent = ({isHiddenSearch = false, isHiddenCart=false}) => {
     <div style={{ width: '100%', backgroundColor: 'rgb(26,148,255)', display: 'flex', justifyContent: 'center' }}>
       <WarpperHeader style={{justifyContent : isHiddenCart && isHiddenSearch ? 'space-between' : 'unset'}}>
         <Col span={5}>
+        <div onClick={handleNavigatHome} style={{ cursor: 'pointer' }}>
           <WarpperTextHeader>SIÊU THỊ QUANG KHẢI</WarpperTextHeader>
+          </div>
         </Col>
         {!isHiddenSearch &&(
           <Col span={13}>

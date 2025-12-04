@@ -88,7 +88,7 @@ export const updateUser = async (id, data, access_token) => {
     {
       withCredentials: true,
       headers: {
-        token: `Bearer ${access_token}`,   // nhớ sửa Beare → Bearer
+        token: `Bearer ${access_token}`,  
       }
     }
   );

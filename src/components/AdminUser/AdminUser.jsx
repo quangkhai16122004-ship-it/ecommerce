@@ -22,7 +22,6 @@ const AdminUser = () => {
   const queryClient = useQueryClient();
   const user = useSelector((state) => state.user);
 
-  // ===================== STATE ==========================
   const [stateUser, setStateUser] = useState({
     name: "",
     email: "",
@@ -39,7 +38,6 @@ const AdminUser = () => {
     isAdmin: false,
   });
 
-  // ===================== GET ALL USERS ==========================
   const fetchAllUsers = async () => {
     const res = await UserService.getAllUser(user?.access_token);
     return res;
@@ -56,7 +54,6 @@ const AdminUser = () => {
       key: item._id,
     })) || [];
 
-  // ===================== GET DETAIL USER ==========================
   const fetchUserDetail = async (id) => {
     const res = await UserService.getDetailsUser(id, user?.access_token);
     if (res?.data) {
@@ -71,7 +68,6 @@ const AdminUser = () => {
     }
   }, [rowSelected]);
 
-  // ===================== CREATE USER ==========================
   const mutationCreate = useMutationHooks((body) =>
     UserService.signupUser(body)
   );
@@ -93,7 +89,6 @@ const AdminUser = () => {
     });
   };
 
-  // ===================== UPDATE USER ==========================
   const mutationUpdate = useMutationHooks((data) =>
     UserService.updateUser(data.id, data.body, data.token)
   );
@@ -115,7 +110,6 @@ const AdminUser = () => {
     );
   };
 
-  // ===================== DELETE USER ==========================
   const mutationDelete = useMutationHooks((data) =>
     UserService.deleteUser(data.id, {}, data.token)
   );
@@ -141,7 +135,6 @@ const AdminUser = () => {
 
 const { isSuccess: isSuccessDeleteMany, isError: isErrorDeleteMany } = mutationDeleteMany;
 
-// Xử lý thông báo và invalidate cache sau khi xóa thành công
 useEffect(() => {
     if (isSuccessDeleteMany) {
         message.success("Xóa nhiều user thành công!");
@@ -153,13 +146,12 @@ useEffect(() => {
 
   const handleDeleteManyUsers = (ids) => {
     mutationDeleteMany.mutate({
-        ids: ids, // Mảng ID được chọn từ TableComponent
+        ids: ids, 
         token: user?.access_token,
     });
 };
 
 
-  // ===================== INPUT HANDLERS ==========================
   const handleChange = (e) => {
     setStateUser({ ...stateUser, [e.target.name]: e.target.value });
   };
@@ -168,7 +160,6 @@ useEffect(() => {
     setStateUserDetail({ ...stateUserDetail, [e.target.name]: e.target.value });
   };
 
-  // ===================== TABLE COLUMNS ==========================
   const columns = [
     { title: "Tên", dataIndex: "name" },
     { title: "Email", dataIndex: "email" },
@@ -203,15 +194,14 @@ useEffect(() => {
     <div>
       <h2>Quản lý người dùng</h2>
 
-      <Button
+      {/* <Button
         icon={<PlusOutlined />}
         style={{ marginBottom: 15 }}
         onClick={() => setIsOpenCreate(true)}
       >
         Thêm người dùng
-      </Button>
+      </Button> */}
 
-      {/* ===================== TABLE ===================== */}
       <TableComponent
         columns={columns}
         data={dataTable}
@@ -221,7 +211,6 @@ useEffect(() => {
         handleDeleteManyUsers={handleDeleteManyUsers}
       />
 
-      {/* ===================== CREATE MODAL ===================== */}
       <ModalComponent
         open={isOpenCreate}
         onCancel={() => setIsOpenCreate(false)}
@@ -253,7 +242,6 @@ useEffect(() => {
         </Form>
       </ModalComponent>
 
-      {/* ===================== DELETE MODAL ===================== */}
       <ModalComponent
         open={isOpenDelete}
         onCancel={() => setIsOpenDelete(false)}
@@ -263,7 +251,6 @@ useEffect(() => {
         Bạn có chắc muốn xóa người dùng này?
       </ModalComponent>
 
-      {/* ===================== UPDATE DRAWER ===================== */}
       <DrawerComponent
         isOpen={isOpenDrawer}
         onClose={() => setIsOpenDrawer(false)}

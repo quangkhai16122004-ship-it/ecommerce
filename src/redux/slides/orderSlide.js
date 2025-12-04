@@ -58,10 +58,16 @@ export const orderSlice = createSlice({
             
             state.orderItems = state.orderItems.filter((item) => item.product !== idProduct)
             calculateTotals(state); 
+        },
+        removeAllOrderProduct: (state, action) => {
+        state.orderItems = [];
+        state.orderItemsSelected = [];
+        state.shippingPrice = 0;
+        state.totalPrice = 0;
         }
     },
 })
 
-export const { addOrderProduct, updateOrderQuantity, removeOrderProduct } = orderSlice.actions
+export const { addOrderProduct, updateOrderQuantity, removeOrderProduct, removeAllOrderProduct } = orderSlice.actions
 
 export default orderSlice.reducer

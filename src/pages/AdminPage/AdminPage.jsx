@@ -9,8 +9,8 @@ import {
 import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
+import OrderAdmin from '../../components/OrderAdmin/OrderAdmin';
 
-// Hàm tiện ích để tạo item
 function getItem(label, key, icon, children) {
   return {
     key,
@@ -21,10 +21,10 @@ function getItem(label, key, icon, children) {
 }
 
 const AdminPage = () => {
-  // Cấu hình các menu item
   const items = [
     getItem('Người dùng', 'user', <UserOutlined />),
-    getItem('Sản phẩm', 'product', <AppstoreOutlined />)
+    getItem('Sản phẩm', 'product', <AppstoreOutlined />),
+    getItem('Quản lý đơn hàng', 'orderAdmin')
   ];
 
   const [keySelected, setKeySelected] = useState('')
@@ -38,6 +38,10 @@ const AdminPage = () => {
       case 'product' :
         return(
           <AdminProduct/>
+        )
+        case 'orderAdmin' :
+        return(
+          <OrderAdmin/>
         )
       default:
         return <></>

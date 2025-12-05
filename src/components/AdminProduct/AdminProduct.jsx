@@ -27,29 +27,21 @@ const AdminProduct = () => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const [typeSelect, setTypeSelect]=useState('')
+
   const searchInput = useRef(null);
 
   const initialState = {
-  name: "",
-  type: "",
-  countInStock: "",
-  price: "",
-  rating: "",
-  description: "",
-  image: ""
-};
-
-const [stateProduct, setStateProduct] = useState(initialState);
-
-  const [stateProductDetails, setStateProductDetails] = useState({
     name: "",
-    price: "",
-    description: "",
-    rating: "",
-    image: "",
     type: "",
     countInStock: "",
-  });
+    price: "",
+    rating: "",
+    description: "",
+    image: ""
+  };
+
+  const [stateProduct, setStateProduct] = useState(initialState);
+  const [stateProductDetails, setStateProductDetails] = useState(initialState);
 
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
@@ -60,10 +52,10 @@ const [stateProduct, setStateProduct] = useState(initialState);
     return res;
   };
 
-    const fetchAllTypeProduct = async ()=>{
-      const res = await ProductService.getAllTypeProduct()
-      return res
-    }
+  const fetchAllTypeProduct = async ()=>{
+    const res = await ProductService.getAllTypeProduct()
+    return res
+  }
 
   const typeProduct = useQuery({queryKey:['type-product'], queryFn: fetchAllTypeProduct})
 
@@ -88,9 +80,7 @@ const [stateProduct, setStateProduct] = useState(initialState);
     ProductService.deleteManyProduct(ids, token)
   );
 
-  
   const { isSuccess: isSuccessDelete, isPending: isPendingDelete, isError: isErrorDelete } = mutationDelete;
-
 
   useEffect(() => {
     if (isSuccessDelete) {
@@ -102,7 +92,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
     }
   }, [isSuccessDelete, isErrorDelete, queryClient]);
 
-
   const fetchGetDetailsProduct = async (id) => {
     const res = await ProductService.getDetailsProduct(id);
     if (res?.data) {
@@ -112,14 +101,14 @@ const [stateProduct, setStateProduct] = useState(initialState);
   };
 
   useEffect(() => {
-    if (rowSelected && isOpenDrawer) fetchGetDetailsProduct(rowSelected);
+    if (rowSelected && isOpenDrawer) {
+      fetchGetDetailsProduct(rowSelected);
+    }
   }, [rowSelected, isOpenDrawer]);
 
   const handleCancelDelete = () => {
     setIsModalOpenDelete(false);
   };
-
-
 
   const handleDeleteProduct = () => {
     if (rowSelected) {
@@ -128,8 +117,8 @@ const [stateProduct, setStateProduct] = useState(initialState);
         token: user?.access_token,
       });
     } else {
-        message.error("Vui lòng chọn sản phẩm để xóa.");
-        setIsModalOpenDelete(false);
+      message.error("Vui lòng chọn sản phẩm để xóa.");
+      setIsModalOpenDelete(false);
     }
   };
 
@@ -148,25 +137,24 @@ const [stateProduct, setStateProduct] = useState(initialState);
     });
   };
 
-    const handleCancel = () => {
+  const handleCancel = () => {
     setIsModalOpen(false);
     setStateProduct(initialState);
     form.resetFields();
   };
-
-
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
     setSearchedColumn(dataIndex);
   };
+
   const handleReset = clearFilters => {
     clearFilters();
     setSearchText('');
   };
 
- const getColumnSearchProps = dataIndex => ({
+  const getColumnSearchProps = dataIndex => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
       <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
         <InputComponent
@@ -207,37 +195,47 @@ const [stateProduct, setStateProduct] = useState(initialState);
         }
       },
     },
-    // render: text =>
-    //   searchedColumn === dataIndex ? (
-    //     <Highlighter
-    //       highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-    //       searchWords={[searchText]}
-    //       autoEscape
-    //       textToHighlight={text ? text.toString() : ''}
-    //     />
-    //   ) : (
-    //     text
-    //   ),
   });
-  
+
   const columns = [
-    { title: "Name", dataIndex: "name", sorter:(a,b)=>a.name.length - b.name.length, ...getColumnSearchProps('name') },
-    { title: "Price", dataIndex: "price", sorter:(a,b)=>a.price - b.price },
-    { title: "Rating", dataIndex: "rating", sorter:(a,b)=>a.rating - b.rating },
-    { title: "Type", dataIndex: "type" },
+    { 
+      title: "Name", 
+      dataIndex: "name", 
+      sorter:(a,b)=>a.name.length - b.name.length, 
+      ...getColumnSearchProps('name') 
+    },
+    { 
+      title: "Price", 
+      dataIndex: "price", 
+      sorter:(a,b)=>a.price - b.price 
+    },
+    { 
+      title: "Rating", 
+      dataIndex: "rating", 
+      sorter:(a,b)=>a.rating - b.rating 
+    },
+    { 
+      title: "Type", 
+      dataIndex: "type" 
+    },
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_, record) => (
         <div>
           <DeleteOutlined
             style={{ color: "red", fontSize: "30px", cursor: "pointer" }}
-            // Khi click, hiển thị Modal xóa
-            onClick={() => setIsModalOpenDelete(true)}
+            onClick={() => {
+              setRowSelected(record._id);
+              setIsModalOpenDelete(true);
+            }}
           />
           <EditOutlined
             style={{ color: "orange", fontSize: "30px", cursor: "pointer", marginLeft: 10 }}
-            onClick={() => setIsOpenDrawer(true)}
+            onClick={() => {
+              setRowSelected(record._id);
+              setIsOpenDrawer(true);
+            }}
           />
         </div>
       ),
@@ -278,6 +276,8 @@ const [stateProduct, setStateProduct] = useState(initialState);
           message.success("Cập nhật thành công!");
           queryClient.invalidateQueries(["products"]);
           setIsOpenDrawer(false);
+          setStateProductDetails(initialState);
+          form.resetFields();
         },
         onError: (error) => {
           message.error("Cập nhật thất bại!");
@@ -312,7 +312,10 @@ const [stateProduct, setStateProduct] = useState(initialState);
     const file = info.file;
     file.preview = await getBase64(file.originFileObj);
 
-    setStateProductDetails({ ...stateProductDetails, image: file.preview });
+    setStateProductDetails({ 
+      ...stateProductDetails, 
+      image: file.preview 
+    });
     form.setFieldsValue({ image: file.preview });
   };
 
@@ -345,7 +348,7 @@ const [stateProduct, setStateProduct] = useState(initialState);
 
       <div style={{ marginTop: "20px" }}>
         <TableComponent
-        handleDeleteManyProducts={handleDeleteManyProducts}
+          handleDeleteManyProducts={handleDeleteManyProducts}
           columns={columns}
           data={dataTable}
           onRow={(record) => ({
@@ -367,13 +370,15 @@ const [stateProduct, setStateProduct] = useState(initialState);
           </Form.Item>
 
           <Form.Item label="Type" name="type" rules={[{ required: true }]}>
-            <Select name="type"
+            <Select 
+              name="type"
               value={typeSelect}
               onChange={handleChangeSelect}
-              options={renderOptions(typeProduct?.data?.data)}/>
-              {typeSelect === 'add_type' && (
+              options={renderOptions(typeProduct?.data?.data)}
+            />
+            {typeSelect === 'add_type' && (
               <InputComponent name="type" value={stateProduct.type} onChange={handleChange} />
-              )}
+            )}
           </Form.Item>
 
           <Form.Item label="Count InStock" name="countInStock">
@@ -435,21 +440,31 @@ const [stateProduct, setStateProduct] = useState(initialState);
         confirmLoading={isPendingDelete} 
       >
         <div>
-          Bạn chắc chắn muốn **xóa** sản phẩm này?
+          Bạn chắc chắn muốn xóa sản phẩm này?
         </div>
       </ModalComponent>
 
       <DrawerComponent
+        forceRender
         title="Chi tiết sản phẩm"
         isOpen={isOpenDrawer}
-        onClose={() => setIsOpenDrawer(false)}
+        onClose={() => {
+          setIsOpenDrawer(false);
+          setStateProductDetails(initialState);
+          form.resetFields();
+        }}
         width="90%"
       >
-        <Form labelCol={{ span: 2 }} wrapperCol={{ span: 22 }} onFinish={onFinishUpdate} form={form}>
+        <Form 
+          form={form}
+          labelCol={{ span: 2 }} 
+          wrapperCol={{ span: 22 }} 
+          onFinish={onFinishUpdate}
+          initialValues={stateProductDetails}
+        >
           <Form.Item label="Name" name="name" rules={[{ required: true }]}>
             <InputComponent
               name="name"
-              value={stateProductDetails.name}
               onChange={handleChangeDetails}
             />
           </Form.Item>
@@ -457,7 +472,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
           <Form.Item label="Type" name="type">
             <InputComponent
               name="type"
-              value={stateProductDetails.type}
               onChange={handleChangeDetails}
             />
           </Form.Item>
@@ -465,7 +479,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
           <Form.Item label="Count" name="countInStock">
             <InputComponent
               name="countInStock"
-              value={stateProductDetails.countInStock}
               onChange={handleChangeDetails}
             />
           </Form.Item>
@@ -473,7 +486,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
           <Form.Item label="Price" name="price">
             <InputComponent
               name="price"
-              value={stateProductDetails.price}
               onChange={handleChangeDetails}
             />
           </Form.Item>
@@ -481,7 +493,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
           <Form.Item label="Rating" name="rating">
             <InputComponent
               name="rating"
-              value={stateProductDetails.rating}
               onChange={handleChangeDetails}
             />
           </Form.Item>
@@ -489,7 +500,6 @@ const [stateProduct, setStateProduct] = useState(initialState);
           <Form.Item label="Description" name="description">
             <InputComponent
               name="description"
-              value={stateProductDetails.description}
               onChange={handleChangeDetails}
             />
           </Form.Item>
